@@ -1,0 +1,58 @@
+---
+
+- name: Creating kafka group
+  group:
+    name: "{{  kafkaGroup }}"
+    gid: "{{ kafkaGroupId }}"
+    state: present
+
+- name: Creating kafka user
+  user:
+    name: "{{ kafkaUser }}"
+    comment: kafka Default User
+    create_home: yes
+    home: /home/{{ kafkaUser }}
+    uid: "{{ kafkaUserId }}"
+    group: "{{ kafkaGroup }}"
+    append: yes
+    shell: /bin/bash
+    state: present
+    password: "{{ 'welcome' | password_hash('sha512') }}"
+    update_password: on_create
+
+- name: Creating SSH directory
+  become_user: "{{ kafkaUser }}"
+  file:
+    path: /home/{{ kafkaUser }}/.ssh
+    state: directory
+
+- name: Delete old SSH public key
+  file:
+     path: "/home/{{ kafkaUser }}/.ssh/id_rsa"
+     state: absent
+
+- name: Generating SSH keys
+  become_user: "{{ kafkaUser }}"
+  shell: ssh-keygen -b 2048 -t rsa -f /home/"{{ kafkaUser }}"/.ssh/id_rsa -q -N ""
+  args:
+    creates: /home/"{{ kafkaUser  }}"/.ssh/id_rsa
+
+- name: Creating SSH config
+  become_user: "{{ kafkaUser }}"
+  file:
+     path: /home/{{ kafkaUser }}/.ssh/config
+     state: touch
+
+- name: Configure SSH settings
+  become_user: "{{ kafkaUser }}"
+  lineinfile: 
+     path: /home/{{ kafkaUser }}/.ssh/config
+     line:  |
+         Host *
+         StrictHostKeyChecking no
+
+- name: Register ssh key at sandbox-kfk-admin
+  become_user: "{{ kafkaUser }}"
+  command: sshpass -p welcome ssh-copy-id  root@sandbox-kfk-admin
+
+

@@ -1,0 +1,54 @@
+---
+
+- name: Import truststore certificates in broker
+  become_user: "{{ kafkaUser }}"
+  shell: |
+     {{ keytool_command }} -keystore {{ truststore_file }} \
+     -alias {{ alias }} \
+     -import -file {{ cert_file  }} \
+     -storepass  "{{ password }}" \
+     -keypass "{{ password }}" \
+     -noprompt
+  args:
+     chdir: "{{ CSR_location }}"
+
+- name: Import keystore certificates in broker
+  become_user: "{{ kafkaUser }}"
+  shell: |
+     {{ keytool_command }} -keystore {{ keystore_file }} \
+     -alias {{ alias }} \
+     -import -file {{ cert_file  }} \
+     -storepass  "{{ password }}" \
+     -keypass "{{ password }}" \
+     -noprompt
+  args:
+     chdir: "{{ CSR_location }}"
+
+- name: Import signed certificates in broker
+  become_user: "{{ kafkaUser }}"
+  shell: |
+     {{ keytool_command }} -keystore {{ keystore_file }} \
+     -import -file {{ signed_cert  }} \
+     -storepass  "{{ password }}" \
+     -keypass "{{ password }}" \
+     -noprompt
+  args:
+     chdir: "{{ CSR_location }}" 
+
+- name: Pause for 10 seconds 
+  pause:
+     seconds: 10
+
+- name: Stop schema registry
+  become_user: "{{ kafkaUser }}"
+  ignore_errors: yes
+  shell: schema-registry-stop
+  args:
+     executable: /bin/bash
+
+- name: Start schema registry
+  become_user: "{{ kafkaUser }}"  
+  shell:  "{{ kafka_download_location}}/{{ kafka_moved_folder_name }}/bin/schema-registry-start -daemon {{ kafka_download_location }}/{{ kafka_moved_folder_name }}/etc/schema-registry/schema-registry.properties"
+  args:
+     executable: /bin/bash
+

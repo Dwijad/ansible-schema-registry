@@ -1,0 +1,7 @@
+---
+kafkaGroup: kfk
+kafkaUser: kfkmgr
+kafkaGroupId: 7000
+kafkaUserId: 7000
+
+kafkaInstallDir: /u01/cnfkp

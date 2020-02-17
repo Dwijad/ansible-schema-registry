@@ -1,0 +1,7 @@
+---
+
+- name: Register ssh key at brokers
+  become_user: root
+  command: sshpass -p welcome ssh-copy-id  {{ kafkaUser }}@{{ item }}
+  loop:
+    - "{{ broker_host_name }}"

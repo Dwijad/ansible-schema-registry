@@ -1,0 +1,14 @@
+---
+
+CA_location: /etc/ssl/clusterCA
+CA_cert_file_name: ca-cert
+CA_key_file_name: ca-key
+days: 365
+password: MyServerPassword123
+
+adminUser: root
+#keytool_command: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.242.b08-0.el7_7.x86_64/jre/bin/keytool
+certificate_location: /u01/cnfkp/confluent-kfk/etc/ssl/client_cert
+kafkaUser: kfkmgr
+cert_sign_request_file: client-cert-sign-request
+cert_output_file: cli-cert-signed

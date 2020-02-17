@@ -1,0 +1,117 @@
+---
+
+- name: Download kafka
+  get_url: url={{ kafka_download_url }}/{{ kafka_version }}/{{ kafka_major_version }}-{{ kafka_minor_version }}.tar.gz dest={{ kafka_download_location }}
+
+- name: Delete kafka folder if exists
+  file:
+    path: "{{ kafka_download_location }}/{{ kafka_moved_folder_name }}"
+    state: absent
+
+- name: Unarchive kafka
+  unarchive: src={{ kafka_download_location }}/{{ kafka_major_version }}-{{ kafka_minor_version }}.tar.gz dest={{ kafka_download_location }} copy=no
+
+- name: Move Kafka
+  command: mv {{ kafka_download_location }}/{{ kafka_major_version }} {{ kafka_download_location }}/{{ kafka_moved_folder_name }}
+  
+- name: Change ownership of Kafka
+  command: chown -R {{ kafkaUser }}:{{ kafkaGroup }} {{ kafka_download_location }}/{{ kafka_moved_folder_name }}
+
+- name: Delete extracted folder
+  command: rm -rf {{ kafka_download_location }}/{{ kafka_version }}/{{ kafka_major_version }}-{{ kafka_minor_version }}.tar.gz
+
+- name: Creating Kafka data/log directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ kafkaUser }}"
+    group: "{{ kafkaGroup }}"
+    mode: 0775
+  loop:
+    - "{{ kafka_data_log_dir }}"
+    - "{{ kafka_server_log_dir }}"
+
+- name: Update bash profile
+  lineinfile:
+     path: /home/{{ kafkaUser }}/.bash_profile
+     line:  export PATH=$PATH:{{ kafka_download_location }}/{{ kafka_moved_folder_name }}/bin
+
+- name: Reload new environment
+  shell: cd /home/kfkmgr && source .bash_profile
+  become_user: kfkmgr
+  become: yes
+  args:
+    chdir: /home/kfkmgr
+    executable: /bin/bash
+
+- name: Copying kafka server configuration file
+  template:
+    src: templates/schema-registry.properties.j2
+    dest: "{{ kafka_download_location }}/{{ kafka_moved_folder_name }}/etc/schema-registry/schema-registry.properties"
+
+- name: Flush all iptables rule
+  become_user: root
+  warn: false
+  shell: iptables -F
+  args:
+     executable: /bin/bash
+
+- name: Save iptable rule
+  become_user: root
+  warn: false
+  shell: service iptables save
+  args:
+     executable: /bin/bash
+
+- name: IPTABLE settings
+  become_user: root
+  warn: false
+  shell: iptables -A INPUT -p tcp --dport {{ listener_port }} -j ACCEPT && iptables -A INPUT -p tcp --dport {{ jetty_port }} -j ACCEPT &&  iptables -A INPUT -p tcp --dport {{ jolokia_port }} -j ACCEPT
+  args:
+     executable: /bin/bash
+
+- name: Save and start IPTABLE
+  become_user: root
+  shell: service iptables save && service iptables restart
+  args:
+     executable: /bin/bash
+
+- name: Creating prometheus/jolokia directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ kafkaUser }}"
+    group: "{{ kafkaGroup }}"
+    mode: 0775
+  loop:
+    - "{{ kafka_installation_path }}/{{ prometheus_folder }}"
+    - "{{ kafka_installation_path }}/{{ jolokia_folder }}"
+
+- name: Download jolokia agent
+  become_user: "{{ kafkaUser }}"
+  shell: cd "{{ kafka_installation_path }}/{{ jolokia_folder }}" && wget {{ jolokia_download_url }} -O {{ jolokia_agent_jar  }} && chmod u+x {{ jolokia_agent_jar  }}
+  args:
+     executable: /bin/bash
+
+- name: Download prometheus JAR
+  become_user: "{{ kafkaUser }}"
+  get_url: url={{ prometheus_download_url }}/{{ prometheus_jar_file }} dest={{ kafka_installation_path }}/{{ prometheus_folder }}
+
+- name: Download prometheus configuration for Kafka
+  become_user: "{{ kafkaUser }}"
+  get_url: url={{ prometheus_config_url }}/{{ prometheus_config_file }} dest={{ kafka_installation_path }}/{{ prometheus_folder }}
+
+- name: Updating configuration for prometheus/schema registry
+  blockinfile:
+    dest: "{{ kafka_download_location }}/{{ kafka_moved_folder_name }}/bin/schema-registry-start"
+    insertafter: 'fi'
+    content: |
+        KAFKA_OPTS="-javaagent:{{ kafka_installation_path }}/{{ prometheus_folder }}/{{ prometheus_jar_file }}={{ jetty_port }}:{{  kafka_installation_path }}/{{ prometheus_folder }}/{{ prometheus_config_file }} -javaagent:{{ kafka_installation_path }}/{{ jolokia_folder }}/{{ jolokia_agent_jar }}=host=*"
+        export KAFKA_OPTS
+
+- name: Start schema registry
+  become_user: "{{ kafkaUser }}"
+  shell: "{{ kafka_download_location}}/{{ kafka_moved_folder_name }}/bin/schema-registry-start -daemon {{ kafka_download_location }}/{{ kafka_moved_folder_name }}/etc/schema-registry/schema-registry.properties"
+  args:
+     executable: /bin/bash
+

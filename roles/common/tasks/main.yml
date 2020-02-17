@@ -1,0 +1,10 @@
+---
+
+- name: Installing common utils
+  include_tasks: utils.yml  
+
+- name: Creating kafka  user and group
+  include_tasks: createUser.yml
+
+- name: Creating directory structure for kafka
+  include_tasks: createDir.yml

@@ -1,0 +1,13 @@
+---
+
+CA_location: /etc/ssl/clusterCA
+CA_subject: /C=US/ST=CA/L=San Jose/O=Company/OU=Org/CN=sandbox-kfk-admin.tuxlab.org.in
+#CA_subject: /CN=sandbox-kfk-admin.tuxlab.org.in
+
+broker_1: sandbox-kfk-bro1
+broker_2: sandbox-kfk-bro2
+broker_3: sandbox-kfk-bro3
+broker_4: sandbox-kfk-bro4
+broker_5: sandbox-kfk-bro5
+
+kafkaUser: kfkmgr

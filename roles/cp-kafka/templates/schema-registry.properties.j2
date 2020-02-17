@@ -1,0 +1,25 @@
+listeners={{ listener_type }}://{{ listener_host_name }}:{{ listener_port }}
+ssl.keystore.location={{ ssl_keystore_location }}
+ssl.keystore.password={{ ssl_keystore_password }}
+ssl.key.password={{ ssl_key_password }}
+security.protocol={{ security_protocol }}
+ssl.truststore.location={{ ssl_truststore_location }}
+ssl.truststore.password={{ ssl_truststore_password }}
+#ssl.client.auth=true
+ssl.endpoint.identification.algorithm={{ ssl_endpoint_identification_algorithm }}
+
+
+kafkastore.bootstrap.servers={{ kafkastore_bootstrap_protocol }}://{{ kafkastore_bootstrap_servers  }}:{{ kafkastore_bootstrap_port }}
+kafkastore.ssl.key.password={{ kafkastore_ssl_key_password }}
+kafkastore.ssl.keystore.location={{ kafkastore_ssl_keystore_location }}
+kafkastore.ssl.keystore.password={{ kafkastore_ssl_keystore_password }}
+kafkastore.ssl.truststore.location={{ kafkastore_ssl_truststore_location }}
+kafkastore.ssl.truststore.password={{ kafkastore_ssl_truststore_password }}
+kafkastore.ssl.endpoint.identification.algorithm={{ kafkastore_ssl_endpoint_identification_algorithm }}
+
+kafkastore.topic={{ kafkastore_topic }}
+kafkastore.security.protocol={{ kafkastore_security_protocol }}
+debug={{ debug }}
+access.control.allow.methods={{ access_control_allow_methods }}
+access.control.allow.origin={{ access_control_allow_origin }}
+inter.instance.protocol={{ inter_instance_protocol }}

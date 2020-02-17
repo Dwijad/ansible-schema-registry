@@ -1,0 +1,54 @@
+---
+
+- name: Ansible check CSR directory.
+  stat:
+     path: "{{ CSR_location }}"
+  register: check_folder 
+
+- name: "echo if CSR directory already existed"
+  debug:
+      msg: "The CSR directory already exist"
+  when: check_folder.stat.exists
+
+- name: "Ansible Create directory if not exists"
+  file:
+     path:  "{{ CSR_location }}"
+     state: directory
+     mode: 0755
+     group: "{{ kafkaGroup }}"
+     owner: "{{ kafkaUser }}"
+  when: check_folder.stat.exists == false
+
+- name: Generate CSR
+  become_user: "{{ kafkaUser }}"
+  shell: |
+     {{ keytool_location }}/keytool -genkey -keystore \
+     {{ keystore_name }} -validity {{ validity }}  -storepass "{{ server_password }}" \
+     -keypass "{{ server_password }}" \
+     -dname "CN={{ ca_subject_broker }},{{ ca_subject_ou }}" -storetype pkcs12 
+  args:
+     chdir: "{{ CSR_location }}"
+
+- name: Pause for 10 seconds so that keystore file is available
+  pause:
+     seconds: 10
+
+- name: Create certificate signing request
+  become_user: "{{ kafkaUser }}"
+  shell: |
+     {{ keytool_location }}/keytool -keystore {{ keystore_name }} \
+     -certreq -file {{ cert_file }} \
+     -storepass  "{{ server_password }}" \ 
+     -keypass "{{ server_password }}"
+  args:
+     chdir: "{{ CSR_location }}"
+
+
+- debug:
+    msg:  scp {{ cert_file }} {{ CA_user }}@{{ CA_node }}:{{ CA_location }}/{{ hostvars['localhost']['cert_sign_request_file_name'] }}
+
+- name: Copy certificate signing request to CA node
+  become_user: "{{ kafkaUser }}"
+  shell: scp {{ cert_file }} {{ CA_user }}@{{ CA_node }}:{{ CA_location }}/{{ cert_sign_request_file_name }}
+  args:
+     chdir: "{{ CSR_location }}"

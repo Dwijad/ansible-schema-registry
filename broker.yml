@@ -1,0 +1,55 @@
+---
+
+- hosts: localhost
+  gather_facts: no
+  vars_prompt:
+  - name: target_host
+    prompt: Please enter the target host IP/domain name (e.g. sandbox-kfk-bro1)
+    private: no
+
+  - name: admin_node
+    prompt: Please enter admin node IP or domain name(e.g. sandbox-kfk-admin)
+    private: no
+
+
+  tasks:
+    - add_host:
+        name: "{{ target_host }}"
+        groups: dynamically_created_hosts
+   
+    - add_host:
+        name: "{{ admin_node }}"
+        groups: dynamically_created_admin_node
+
+- hosts: dynamically_created_hosts
+  vars_prompt:
+  
+  - name: broker_id
+    prompt: Please enter  broker id(1-256)
+    private: no
+
+  - name: host_name
+    prompt: Please enter host/advertised IP address of broker (e.g. 192.168.252.154)
+    private: no
+
+  become: true
+  roles:
+    - common
+    - java
+    - cp-kafka
+  vars:
+    - doc_root: ~/ansible-kafka
+
+- hosts: dynamically_created_admin_node
+  become: true
+
+  vars_prompt:
+
+  - name: broker_host_name
+    prompt: Please enter  broker host name (sandbox-kfk-bro1)
+    private: no
+
+  roles:
+    - ssh
+  vars:
+    - doc_root: ~/ansible-kafka

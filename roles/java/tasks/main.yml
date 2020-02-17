@@ -1,0 +1,26 @@
+---
+
+- name: Downloading JAVA(tar.gz)
+  get_url: url={{ javaURL }}/{{ javaVersion }}  dest={{ javaInstallDir }}
+
+- name: Extracting Downloaded JAVA
+  unarchive: src={{ javaInstallDir }}/{{ javaVersion }} dest={{ javaInstallDir }} copy=no
+
+- name: Changing ownership of JAVA folder
+  command: chown -R {{ kafkaUser }}:{{ kafkaGroup }} {{ javaInstallDir }}/{{ javafolderName }}
+
+- name: Deleting Downloaded JAVA folder
+  command: rm -rf {{ javaInstallDir }}/{{ javaVersion }}
+
+- name: Updating bash profile
+  blockinfile:
+     path: /home/{{ kafkaUser }}/.bash_profile
+     block: |
+       export PATH=$PATH:{{ javaInstallDir }}/{{ javafolderName }}/bin
+       export JAVA_HOME={{ javaInstallDir }}/{{ javafolderName }}
+
+- name: Reloading new environment
+  become_user: kfkmgr
+  shell: cd  /home/{{ kafkaUser }} && source .bash_profile
+  args:
+     executable: /bin/bash

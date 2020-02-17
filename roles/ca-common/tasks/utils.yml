@@ -1,0 +1,13 @@
+---
+
+- name: Install Common Utils
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - net-tools
+    - tar
+    - unzip
+    - wget
+    - iptables
+    - openssl

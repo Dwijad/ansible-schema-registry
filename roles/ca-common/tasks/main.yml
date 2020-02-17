@@ -1,0 +1,50 @@
+---
+
+- name: Install common utils
+  include_tasks: utils.yml 
+
+- name: Ansible check CA directory.
+  stat:
+     path: "{{ CA_location }}"
+  register: check_folder 
+
+- name: "ECHO if CA location already exist or not"
+  debug:
+      msg: "The CA directory already exist"
+  when: check_folder.stat.exists
+
+- name: "Create directory if not exists"
+  file:
+     path:  "{{ CA_location }}"
+     state: directory
+     mode: 0755
+     group: root
+     owner: root
+  when: check_folder.stat.exists == false
+
+
+- name: Generate SSH keys
+  become_user: root
+  shell: ssh-keygen -b 2048 -t rsa -f /root/.ssh/id_rsa -q -N ""
+  args:
+    creates: /root/.ssh/id_rsa
+
+- name: Create SSH config
+  become_user: root
+  file:
+     path: /root/.ssh/config
+     state: touch
+
+- name: SSH settings
+  become_user: root
+  lineinfile: 
+     path: /root/.ssh/config
+     line:  |
+         Host *
+         StrictHostKeyChecking no
+
+- name: Generate CA certificate
+  become_user: root
+  shell: cd {{ CA_location }} && openssl req -new -newkey rsa:4096 -days 365 -x509 -subj "{{ CA_subject }}" -keyout ca-key -out ca-cert -nodes
+  args:
+     executable: /bin/bash

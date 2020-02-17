@@ -1,0 +1,18 @@
+---
+
+truststore_file: kafka.client.truststore.jks
+keystore_file: kafka.client.keystore.jks
+alias: CARoot
+alias_c: Client
+cert_file: ca-cert
+signed_cert: cli-cert-signed
+password: MyClientPassword123
+
+adminUser: root
+keytool_command: /u01/cnfkp/jdk1.8.0_212/bin/keytool
+kafkaUser: kfkmgr
+CSR_location: /u01/cnfkp/confluent-kfk/etc/ssl/client_cert
+kfk_home:  /u01/cnfkp/confluent-kfk
+
+kafka_download_location: /u01/cnfkp
+kafka_moved_folder_name: confluent-kfk

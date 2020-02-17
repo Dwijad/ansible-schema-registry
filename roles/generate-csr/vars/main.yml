@@ -1,0 +1,17 @@
+---
+
+kafkaGroup: kfk
+kafkaUser: kfkmgr
+#ca_subject_broker:
+ca_subject_ou: OU=BDP,O=Company,L=San Jose,S=CA,C=US 
+CA_location: /etc/ssl/clusterCA
+CSR_location: /u01/cnfkp/confluent-kfk/etc/ssl
+CA_node: sandbox-kfk-admin.tuxlab.org.in
+CA_user: root
+
+server_password: MyServerPassword123
+keystore_name: kafka.server.keystore.jks
+validity: 365
+
+keytool_location: /u01/cnfkp/jdk1.8.0_212/bin
+cert_file: cert-file

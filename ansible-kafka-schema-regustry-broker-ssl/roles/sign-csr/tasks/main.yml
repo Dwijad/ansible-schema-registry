@@ -1,0 +1,34 @@
+---
+
+- debug:
+    msg: openssl x509 -req -CA {{ CA_cert_file_name }} \
+     -CAkey {{ CA_key_file_name }} \
+     -in /tmp/{{ cert_sign_request_file }} \
+     -out /tmp/{{ cert_output_file }} \
+     -days {{ days }} -CAcreateserial \
+     -passin pass:"{{ password }}"
+
+- name: Sign broker certificate
+  become_user: "{{ adminUser }}"
+  shell: |
+     openssl x509 -req -CA {{ CA_cert_file_name }} \
+     -CAkey {{ CA_key_file_name }} \
+     -in /tmp/{{ cert_sign_request_file }} \
+     -out /tmp/{{ cert_output_file }} \
+     -days {{ days }} -CAcreateserial \
+     -passin pass:"{{ password }}"
+  args:
+     chdir: "{{ CA_location }}"
+
+- debug:
+    msg:  scp /tmp/{{ cert_output_file }} {{ kafkaUser }}@{{ kafkaNode }}:{{ certificate_location }}
+
+- name: Copy certificate signing request to broker node
+  become_user: "{{ adminUser }}"
+  shell: scp /tmp/{{ cert_output_file }} {{ kafkaUser }}@{{ kafkaNode }}:{{ certificate_location }}
+
+- name: Copy CA certificate to broker node
+  become_user: "{{ adminUser }}"
+  shell: scp {{ CA_cert_file_name }} {{ kafkaUser }}@{{ kafkaNode }}:{{ certificate_location }}
+  args:
+     chdir: "{{ CA_location }}"

@@ -1,0 +1,71 @@
+---
+
+- name: Import truststore certificates in broker
+  become_user: "{{ kafkaUser }}"
+  shell: |
+     {{ keytool_command }} -keystore {{ truststore_file }} \
+     -alias {{ alias }} \
+     -import -file {{ cert_file  }} \
+     -storepass  "{{ password }}" \
+     -keypass "{{ password }}" \
+     -noprompt
+  args:
+     chdir: "{{ CSR_location }}"
+
+- name: Import keystore certificates in broker
+  become_user: "{{ kafkaUser }}"
+  shell: |
+     {{ keytool_command }} -keystore {{ keystore_file }} \
+     -alias {{ alias }} \
+     -import -file {{ cert_file  }} \
+     -storepass  "{{ password }}" \
+     -keypass "{{ password }}" \
+     -noprompt
+  args:
+     chdir: "{{ CSR_location }}"
+
+- name: Import signed certificates in broker
+  become_user: "{{ kafkaUser }}"
+  shell: |
+     {{ keytool_command }} -keystore {{ keystore_file }} \
+     -import -file {{ signed_cert  }} \
+     -alias {{ alias_c }} \
+     -storepass  "{{ password }}" \
+     -keypass "{{ password }}" \
+     -noprompt
+  args:
+     chdir: "{{ CSR_location }}" 
+
+- name: Create  Kafka client properties file
+  become_user: "{{ kafkaUser }}"
+  file:
+     path: "{{ CSR_location }}/client.properties"
+     state: touch
+
+- name: Configure Kafka client properties file
+  become_user: "{{ kafkaUser }}"
+  lineinfile: 
+     path: "{{ CSR_location }}/client.properties"
+     line:  |
+          security.protocol=SSL
+          ssl.truststore.location={{ CSR_location }}/{{ truststore_file }}
+          ssl.truststore.password={{ password }}
+          ssl.keystore.location={{ CSR_location }}/{{ keystore_file }}
+          ssl.keystore.password={{ password }}
+          ssl.key.password={{ password }}
+          ssl.endpoint.identification.algorithm=
+
+
+- name: Stop Schema registry
+  become_user: "{{ kafkaUser }}"
+  ignore_errors: yes
+  command: "{{ kafka_download_location }}/{{ kafka_moved_folder_name }}/bin/schema-registry-stop"
+  args:
+     chdir: "{{ kafka_download_location}}"
+
+- name: Start Schema registry
+  become_user: "{{ kafkaUser }}"
+  shell: "{{ kafka_download_location }}/{{ kafka_moved_folder_name }}/bin/schema-registry-start -daemon {{ kafka_download_location }}/{{ kafka_moved_folder_name }}/etc/schema-registry/schema-registry.properties"
+  args:
+     executable: /bin/bash
+

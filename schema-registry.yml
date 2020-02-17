@@ -1,0 +1,61 @@
+---
+
+- hosts: localhost
+  gather_facts: true
+  vars_prompt:
+  - name: target_host
+    prompt: Please enter host name of schema registry(e.g. sandbox-kfk-sr1)
+    private: no
+
+  - name: admin_node
+    prompt: Please enter admin node domain name(e.g. sandbox-kfk-admin)
+    private: no
+
+  vars:
+    - broker_host_name : "{{ target_host }}"
+    - doc_root: ~/ansible-schema-registry
+
+  tasks:
+    - add_host:
+        name: "{{ target_host }}"
+        groups: dynamically_created_hosts
+   
+    - add_host:
+        name: "{{ admin_node }}"
+        groups: dynamically_created_admin_node
+
+    - set_fact:
+        broker_host_name: "{{ target_host }}"
+
+- hosts: dynamically_created_hosts
+  gather_facts: true
+  vars_prompt:
+  
+  - name: host_name
+    prompt: Please enter FQDN of schema registry (e.g. sandbox-kfk-sr1.tuxlab.org.in)
+    private: no
+
+  vars:
+    - listener_host_name : "{{ host_name }}"
+    - doc_root: ~/ansible-schema-registry
+
+  tasks:
+    - set_fact:
+        listener_host_name: "{{ host_name }}"
+
+  become: true
+  roles:
+    - common
+    - java
+    - cp-kafka
+
+- hosts: dynamically_created_admin_node
+  gather_facts: true
+  become: true
+
+  vars:
+    - broker_host_name: "{{  hostvars['localhost']['broker_host_name'] }}" 
+    - doc_root: ~/ansible-schema-registry
+
+  roles:
+    - ssh

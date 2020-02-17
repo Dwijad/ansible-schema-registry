@@ -1,0 +1,24 @@
+---
+
+- name: Install Common Utils
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - net-tools
+    - tar
+    - unzip
+    - wget
+    - iptables
+    - sshpass
+
+- name: Remove OpenJDK
+  yum:
+    name: java*
+    state: absent
+
+- name: Remove OpenJDK java binary
+  file:
+    path: /usr/bin/java
+    state: absent
+

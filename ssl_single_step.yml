@@ -1,0 +1,76 @@
+---
+
+- hosts: localhost
+  gather_facts: true
+  vars_prompt:
+  - name: target_host
+    prompt: Please enter host name of schema registry (e.g. sandbox-kfk-sr1)
+    private: no
+        
+  - name: admin_host
+    prompt: Please enter domain name of admin node. (e.g. sandbox-kfk-admin)
+    private: no
+        
+  - name: cert_sign_request_file
+    prompt: Please enter  certificate sign request file for schema registry(e.g sr1-cert-sign-request)
+    private: no
+
+  - name: broker_fqdn
+    prompt: Please enter schema registry's FQDN
+    private: no
+
+  vars:
+    cert_sign_request_file_name: "{{ cert_sign_request_file }}"      
+    fqdn_broker: "{{ broker_fqdn }}"
+
+  tasks:
+    - add_host:
+        name: "{{ target_host }}"
+        groups: broker_host_name
+                
+    - add_host:
+        name: "{{ admin_host }}"
+        groups: admin_host_name
+                
+    - set_fact:
+        cert_sign_request_file_name: "{{ cert_sign_request_file }}"
+        fqdn_broker: "{{ broker_fqdn }}"
+ 
+- hosts: broker_host_name
+  become: true
+  gather_facts: true
+
+  vars:
+    - cert_sign_request_file_name: "{{ hostvars['localhost']['cert_sign_request_file_name'] }}"
+    - doc_root: ~/ansible-kafka
+    - ca_subject_broker: "{{  hostvars['localhost']['fqdn_broker'] }}"     
+
+  vars_prompt:
+
+  roles:
+    - generate-csr
+        
+- hosts: admin_host_name
+  become: true
+  gather_facts: true
+
+  vars:
+    - cert_input_file: "{{ hostvars['localhost']['cert_sign_request_file_name'] }}"
+    - doc_root: ~/ansible-kafka
+    - kafkaNode: "{{  hostvars['localhost']['fqdn_broker'] }}" 
+
+  vars_prompt:
+
+  - name: cert_output_file
+    prompt: Please enter  certificate output file for schema registry(e.g bro1-cert-signed)
+    private: no
+
+  roles:
+    - sign-csr
+        
+- hosts: broker_host_name
+  become: true
+  roles:
+    - import-cert
+  vars:
+    - doc_root: ~/ansible-kafka

@@ -1,0 +1,58 @@
+---
+
+kafka_download_url: http://packages.confluent.io/archive
+kafka_version: 5.2
+kafka_major_version: confluent-5.2.1
+kafka_minor_version: 2.12
+kafka_installation_path: /u01/cnfkp
+kafka_download_location: /u01/cnfkp
+kafka_moved_folder_name: confluent-kfk
+kafka_data_log_dir: /u01/cnfkp/confluent-kfk/data/kafka-logs
+kafka_server_log_dir: /u01/cnfkp/confluent-kfk/logs
+
+
+kafkaGroup: kfk
+kafkaUser: kfkmgr
+kafkaGroupId: 7000
+kafkaUserId: 7000
+
+prometheus_folder: prometheus
+prometheus_download_url: https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.3.1
+prometheus_config_url: https://raw.githubusercontent.com/prometheus/jmx_exporter/master/example_configs
+jolokia_folder: jolokia
+jolokia_download_url: https://search.maven.org/remotecontent?filepath=org/jolokia/jolokia-jvm/1.6.2/jolokia-jvm-1.6.2-agent.jar
+prometheus_jar_file: jmx_prometheus_javaagent-0.3.1.jar
+jolokia_agent_jar: jolokia-agent.jar
+prometheus_config_file: kafka-0-8-2.yml
+jetty_port: 8080
+jolokia_port: 8778
+
+listener_type: https
+listener_port: 8081
+listener_host_name: sandbox-kfk-sr1.tuxlab.org.in
+
+ssl_keystore_location: /u01/cnfkp/confluent-kfk/etc/ssl/kafka.server.keystore.jks
+ssl_keystore_password: MyServerPassword123
+ssl_key_password: MyServerPassword123
+security_protocol: SSL
+ssl_truststore_location: /u01/cnfkp/confluent-kfk/etc/ssl/kafka.server.truststore.jks
+ssl_truststore_password: MyServerPassword123
+#ssl.client.auth: true
+ssl_endpoint_identification_algorithm:
+
+kafkastore_bootstrap_protocol: SSL
+kafkastore_bootstrap_port: 9093
+kafkastore_bootstrap_servers: sandbox-kfk-bro1.tuxlab.org.in
+kafkastore_ssl_key_password: MyClientPassword123
+kafkastore_ssl_keystore_location: /u01/cnfkp/confluent-kfk/etc/ssl/client_cert/kafka.client.keystore.jks
+kafkastore_ssl_keystore_password: MyClientPassword123
+kafkastore_ssl_truststore_location: /u01/cnfkp/confluent-kfk/etc/ssl/client_cert/kafka.client.truststore.jks
+kafkastore_ssl_truststore_password: MyClientPassword123
+kafkastore_ssl_endpoint_identification_algorithm:
+
+kafkastore_topic: _schemas
+kafkastore_security_protocol: SSL
+debug: true
+access_control_allow_methods: GET,POST,PUT,DELETE,OPTIONS,HEAD
+access_control_allow_origin: \*
+inter_instance_protocol: https
